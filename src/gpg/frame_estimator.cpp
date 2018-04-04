@@ -2,7 +2,10 @@
 
 
 std::vector<LocalFrame> FrameEstimator::calculateLocalFrames(const CloudCamera& cloud_cam,
-  const std::vector<int>& indices, double radius, const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const
+							     const std::vector<int>& indices,
+							     double radius,
+							     bool align_optical_axis,
+							     const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const
 {
   double t1 = omp_get_wtime();
   std::vector<LocalFrame*> frames;
@@ -14,7 +17,7 @@ std::vector<LocalFrame> FrameEstimator::calculateLocalFrames(const CloudCamera& 
   for (int i = 0; i < indices.size(); i++)
   {
     const pcl::PointXYZRGBA& sample = cloud_cam.getCloudProcessed()->points[indices[i]];
-    LocalFrame* frame = calculateFrame(cloud_cam.getNormals(), sample.getVector3fMap().cast<double>(), radius, kdtree);
+    LocalFrame* frame = calculateFrame(cloud_cam.getNormals(), sample.getVector3fMap().cast<double>(), radius, align_optical_axis, kdtree);
     frames[i] = frame;
 //    frames[i]->print();
   }
@@ -36,7 +39,10 @@ std::vector<LocalFrame> FrameEstimator::calculateLocalFrames(const CloudCamera& 
 
 
 std::vector<LocalFrame> FrameEstimator::calculateLocalFrames(const CloudCamera& cloud_cam,
-  const Eigen::Matrix3Xd& samples, double radius, const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const
+							     const Eigen::Matrix3Xd& samples,
+							     double radius,
+							     bool align_optical_axis,
+							     const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const
 {
   double t1 = omp_get_wtime();
   std::vector<LocalFrame*> frames;
@@ -47,7 +53,7 @@ std::vector<LocalFrame> FrameEstimator::calculateLocalFrames(const CloudCamera& 
 #endif
   for (int i = 0; i < samples.cols(); i++)
   {
-    LocalFrame* frame = calculateFrame(cloud_cam.getNormals(), samples.col(i), radius, kdtree);
+    LocalFrame* frame = calculateFrame(cloud_cam.getNormals(), samples.col(i), radius, align_optical_axis, kdtree);
     frames[i] = frame;
 //    frames[i]->print();
   }
@@ -69,8 +75,11 @@ std::vector<LocalFrame> FrameEstimator::calculateLocalFrames(const CloudCamera& 
 }
 
 
-LocalFrame* FrameEstimator::calculateFrame(const Eigen::Matrix3Xd& normals, const Eigen::Vector3d& sample,
-  double radius, const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const
+LocalFrame* FrameEstimator::calculateFrame(const Eigen::Matrix3Xd& normals,
+					   const Eigen::Vector3d& sample,
+					   double radius,
+					   bool align_optical_axis,
+					   const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const
 {
   LocalFrame* frame = NULL;
   std::vector<int> nn_indices;
@@ -87,7 +96,12 @@ LocalFrame* FrameEstimator::calculateFrame(const Eigen::Matrix3Xd& normals, cons
     }
 
     frame = new LocalFrame(sample, -1);
-    frame->findAverageNormalAxis(nn_normals);
+    if (align_optical_axis) {
+      frame->alignNormalOpticalAxis(nn_normals);
+    }
+    else {      
+      frame->findAverageNormalAxis(nn_normals);
+    }
   }
 
   return frame;

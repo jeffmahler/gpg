@@ -37,8 +37,36 @@ void LocalFrame::findAverageNormalAxis(const Eigen::MatrixXd &normals)
 
   // 4. Create binormal (corresponds to major principal curvature axis).
   binormal_ = curvature_axis_.cross(normal_);
+  // std::cout << "AVERAGE" << std::endl;
+  // std::cout << "NORMAL " << normal_ << std::endl;
+  // std::cout << "BINORMAL " << binormal_ << std::endl;
+  // std::cout << "CURVATURE " << curvature_axis_ << std::endl;
 }
 
+void LocalFrame::alignNormalOpticalAxis(const Eigen::MatrixXd &normals)
+{
+  // 1. Calculate "curvature axis" (corresponds to minor principal curvature axis).
+  Eigen::Matrix3d M = normals * normals.transpose();
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen_solver(M); // M is adjoint (M is equal to its transpose)
+  Eigen::Vector3d eigen_values = eigen_solver.eigenvalues().real();
+  Eigen::Matrix3d eigen_vectors = eigen_solver.eigenvectors().real();
+  int min_index;
+  eigen_values.minCoeff(&min_index);
+  curvature_axis_ = eigen_vectors.col(min_index);
+
+  // 2. Set the normal to the reverse camera optical axis
+  normal_ << 0, 0, -1;
+
+  // 3. Create binormal (corresponds to major principal curvature axis).
+  binormal_ = curvature_axis_.cross(normal_);
+  // std::cout << "OPTICAL" << std::endl;
+  // std::cout << "NORMAL " << normal_ << std::endl;
+  // std::cout << "BINORMAL " << binormal_ << std::endl;
+  // std::cout << "CURVATURE " << curvature_axis_ << std::endl;
+  
+  // 4. Set the curvature to form an orthonormal basis
+  curvature_axis_ = normal_.cross(binormal_);
+}
 
 void LocalFrame::plotAxes(void* viewer_void, int id) const
 {

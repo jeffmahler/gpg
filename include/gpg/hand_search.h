@@ -85,7 +85,8 @@ public:
     Eigen::Matrix4d cam_tf_right_; ///< pose of the right camera
     int num_orientations_; ///< number of hand orientations to evaluate
     int rotation_axis_; ///< the rotation axis about which different hand orientations are generated
-
+    bool align_optical_axis_; ///< whether or not to constrain grasps to align with the camera optical axis
+    
     /** robot hand geometry */
     double finger_width_; ///< the width of the robot hand fingers
     double hand_outer_diameter_; ///< the maximum robot hand aperture
@@ -143,7 +144,7 @@ private:
    * \param kdtree the KDTree object used for fast neighborhood search
    * \return the list of robot hand configurations
    */
-  std::vector<GraspSet> evaluateHands(const CloudCamera& cloud_cam, const std::vector<LocalFrame>& frames,
+  std::vector<GraspSet> evaluateHands(const CloudCamera& cloud_cam, const std::vector<LocalFrame>& frames, 
     const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const;
 
   /**

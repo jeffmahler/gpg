@@ -59,9 +59,9 @@ std::vector<GraspSet> HandSearch::searchHands(const CloudCamera& cloud_cam, bool
   std::vector<LocalFrame> frames;
   FrameEstimator frame_estimator(params_.num_threads_);
   if (cloud_cam.getSamples().cols() > 0)
-    frames = frame_estimator.calculateLocalFrames(cloud_cam, cloud_cam.getSamples(), params_.nn_radius_frames_, kdtree);
+    frames = frame_estimator.calculateLocalFrames(cloud_cam, cloud_cam.getSamples(), params_.nn_radius_frames_, params_.align_optical_axis_, kdtree);
   else if (cloud_cam.getSampleIndices().size() > 0)
-    frames = frame_estimator.calculateLocalFrames(cloud_cam, cloud_cam.getSampleIndices(), params_.nn_radius_frames_, kdtree);
+    frames = frame_estimator.calculateLocalFrames(cloud_cam, cloud_cam.getSampleIndices(), params_.nn_radius_frames_, params_.align_optical_axis_, kdtree);
   else
   {
     std::cout << "Error: No samples or no indices!\n";
@@ -70,6 +70,14 @@ std::vector<GraspSet> HandSearch::searchHands(const CloudCamera& cloud_cam, bool
     return hypothesis_set_list;
   }
 
+  // for (int j = 0; j < frames.size(); j++) {
+  //   std::cout << "Frame " << j << std::endl;      
+  //   std::cout << frames[j].getNormal() << std::endl;
+  //   std::cout << frames[j].getBinormal() << std::endl;
+  //   std::cout << frames[j].getCurvatureAxis() << std::endl;
+  // }
+
+  
   if (plots_local_axes_)
     plot_.plotLocalAxes(frames, cloud_cam.getCloudOriginal());
 
@@ -77,6 +85,16 @@ std::vector<GraspSet> HandSearch::searchHands(const CloudCamera& cloud_cam, bool
   std::cout << "Finding hand poses ...\n";
   std::vector<GraspSet> hypothesis_set_list = evaluateHands(cloud_cam, frames, kdtree);
 
+  // for (int i = 0; i < hypothesis_set_list.size(); i++) {
+  //   std::cout << "Set " << i << std::endl;
+  //   std::vector<Grasp> candidates = hypothesis_set_list[i].getHypotheses();
+  //   for (int j = 0; j < candidates.size(); j++) {
+  //     std::cout << "Grasp " << j << std::endl;      
+  //     std::cout << candidates[j].getFrame() << std::endl;
+  //   }
+  // }
+  
+  
   std::cout << "====> HAND SEARCH TIME: " << omp_get_wtime() - t0_total << std::endl;
 
   return hypothesis_set_list;
@@ -174,7 +192,10 @@ std::vector<GraspSet> HandSearch::evaluateHands(const CloudCamera& cloud_cam, co
 
   // possible angles used for hand orientations
   Eigen::VectorXd angles_space = Eigen::VectorXd::LinSpaced(params_.num_orientations_ + 1, -1.0 * M_PI/2.0, M_PI/2.0);
-
+  if (params_.align_optical_axis_) {
+    angles_space = Eigen::VectorXd::LinSpaced(1, 0, 0);
+  }
+  
   // necessary b/c assignment in Eigen does not change vector size
   Eigen::VectorXd angles = angles_space.head(params_.num_orientations_);
 

@@ -71,32 +71,35 @@ class FrameEstimator
      * \param cloud_cam the point cloud
      * \param indices the list of indices into the point cloud
      * \param radius the radius for the point neighborhood search
+     * \param align_optical_axis whether to align the grasp with the camera optical axis
      * \param kdtree the kdtree used for faster neighborhood search
      * \return the list of local reference frames
      */
     std::vector<LocalFrame> calculateLocalFrames(const CloudCamera& cloud_cam, const std::vector<int>& indices,
-      double radius, const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const;
+						 double radius, bool align_optical_axis, const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const;
 
     /**
      * \brief Calculate local reference frames given a list of (x,y,z) samples.
      * \param cloud_cam the point cloud
      * \param samples the list of (x,y,z) samples
      * \param radius the radius for the point neighborhood search
+     * \param align_optical_axis whether to align the grasp with the camera optical axis
      * \param kdtree the kdtree used for faster neighborhood search
      * \return the list of local reference frames
      */
     std::vector<LocalFrame> calculateLocalFrames(const CloudCamera& cloud_cam, const Eigen::Matrix3Xd& samples,
-      double radius, const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const;
+						 double radius, bool align_optical_axis, const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const;
 
     /**
      * \brief Calculate a local reference frame given a list of surface normals.
      * \param normals the list of surface normals
      * \param sample the center of the point neighborhood
      * \param radius the radius of the point neighborhood
+     * \param align_optical_axis whether to align the grasp with the camera optical axis
      * \param kdtree the kdtree used for faster neighborhood search
      * \return the local reference frame
      */
-    LocalFrame* calculateFrame(const Eigen::Matrix3Xd& normals, const Eigen::Vector3d& sample, double radius,
+    LocalFrame* calculateFrame(const Eigen::Matrix3Xd& normals, const Eigen::Vector3d& sample, double radius, bool align_optical_axis,
       const pcl::KdTreeFLANN<pcl::PointXYZRGBA>& kdtree) const;
 
 

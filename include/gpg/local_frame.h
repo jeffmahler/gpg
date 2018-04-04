@@ -69,6 +69,11 @@ public:
   */
   void findAverageNormalAxis(const Eigen::MatrixXd& normals);
 
+  /**
+   * \brief Align the hand direction with the camera optical axis
+  */
+  void alignNormalOpticalAxis(const Eigen::MatrixXd& normals);
+  
 	/**
 	 * \brief Set the input point cloud.
 	 * \param input the input point cloud
