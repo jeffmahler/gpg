@@ -364,10 +364,12 @@ void CloudCamera::calculateNormals(int num_threads)
 
   if (cloud_processed_->isOrganized())
   {
+    std::cout << "organized\n";
     calculateNormalsOrganized();
   }
   else
   {
+    std::cout << "OMP\n";
     calculateNormalsOMP(num_threads);
   }
 
@@ -421,7 +423,7 @@ void CloudCamera::calculateNormalsOMP(int num_threads)
   pcl::search::KdTree<pcl::PointXYZRGBA>::Ptr tree_ptr(new pcl::search::KdTree<pcl::PointXYZRGBA>);
   estimator.setInputCloud(cloud_processed_);
   estimator.setSearchMethod(tree_ptr);
-  estimator.setRadiusSearch(0.03);
+  estimator.setRadiusSearch(0.01);
   pcl::IndicesPtr indices_ptr(new std::vector<int>);
 
   for (int i = 0; i < view_points_.cols(); i++)
